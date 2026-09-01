@@ -1,0 +1,38 @@
+name: Build and publish Unbound ARM64 image
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04-arm
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./1.26.0
+          file: ./1.26.0/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/kid63/unbound-rpi:latest
