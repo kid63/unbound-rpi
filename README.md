@@ -1,6 +1,6 @@
 # unbound-rpi
 
-Docker image for Unbound on Raspberry Pi.
+ARM64 Docker image for Unbound on Raspberry Pi 4 and Raspberry Pi 5.
 
 Built with:
 - Unbound 1.26.0
