@@ -1,20 +1,39 @@
 #!/bin/bash
 set -eo pipefail
 
-reserved=12582912
-availableMemory=$((1024 * $( (grep MemAvailable /proc/meminfo || grep MemTotal /proc/meminfo) | sed 's/[^0-9]//g' ) ))
-memoryLimit=$availableMemory
-[ -r /sys/fs/cgroup/memory/memory.limit_in_bytes ] && memoryLimit=$(cat /sys/fs/cgroup/memory/memory.limit_in_bytes | sed 's/[^0-9]//g')
-[[ ! -z $memoryLimit && $memoryLimit -gt 0 && $memoryLimit -lt $availableMemory ]] && availableMemory=$memoryLimit
-if [ $availableMemory -le $(($reserved * 2)) ]; then
+reserved=$((12 * 1024 * 1024))
+
+availableMemory=$(
+    awk '
+        /MemAvailable:/ { print $2 * 1024; found=1 }
+        END {
+            if (!found) exit 1
+        }
+    ' /proc/meminfo
+)
+
+memoryLimit=""
+
+if [ -r /sys/fs/cgroup/memory.max ]; then
+    memoryLimit=$(cat /sys/fs/cgroup/memory.max)
+elif [ -r /sys/fs/cgroup/memory/memory.limit_in_bytes ]; then
+    memoryLimit=$(cat /sys/fs/cgroup/memory/memory.limit_in_bytes)
+fi
+
+if [[ "$memoryLimit" =~ ^[0-9]+$ ]] && [ "$memoryLimit" -gt 0 ] && [ "$memoryLimit" -lt "$availableMemory" ]; then
+    availableMemory=$memoryLimit
+fi
+
+if [ "$availableMemory" -le $((reserved * 2)) ]; then
     echo "Not enough memory" >&2
     exit 1
 fi
 
-availableMemory=$(($availableMemory - $reserved))
-rr_cache_size=$(($availableMemory / 3))
+availableMemory=$((availableMemory - reserved))
+rr_cache_size=$((availableMemory / 3))
+
 # Use roughly twice as much rrset cache memory as msg cache memory
-msg_cache_size=$(($rr_cache_size / 2))
+msg_cache_size=$((rr_cache_size / 2))
 
 nproc=$(nproc)
 
