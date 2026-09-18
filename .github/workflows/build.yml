@@ -36,8 +36,8 @@ jobs:
       - name: Build and push image
         uses: docker/build-push-action@v7
         with:
-          context: ./1.26.0
-          file: ./1.26.0/Dockerfile
+          context: ./1.26.1
+          file: ./1.26.1/Dockerfile
           pull: true
           no-cache: true
           push: true
