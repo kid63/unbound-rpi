@@ -7,10 +7,6 @@ on:
 
   workflow_dispatch:
 
-  schedule:
-    - cron: '*/10 * * * *'
-      timezone: 'Europe/Berlin'
-
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
