@@ -8,8 +8,8 @@ on:
   workflow_dispatch:
 
   schedule:
-     - cron: '15 8 * * *'
-  timezone: "Europe/Berlin"
+    - cron: '22 8 * * *'
+      timezone: 'Europe/Berlin'
 
 env:
   REGISTRY: ghcr.io
