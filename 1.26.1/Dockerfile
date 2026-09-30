@@ -7,8 +7,8 @@ ENV NAME=unbound \
     SUMMARY="unbound is a validating, recursive, and caching DNS resolver." \
     DESCRIPTION="unbound is a validating, recursive, and caching DNS resolver."
 
-ENV VERSION_OPENSSL=openssl-3.5.8 \
-    SHA256_OPENSSL=a8f84a39918ec6415ce765d9b429d313ba97b8143169c172e734b9514464f5b2 \
+ENV VERSION_OPENSSL=openssl-3.5.9 \
+    SHA256_OPENSSL=603f5602e2eef00d77fbd429d34dcd5822bb301757a1bc9cdb24c670f1eb859a \
     SOURCE_OPENSSL=https://www.openssl.org/source/ \
     # OpenSSL OMC
     OPGP_OPENSSL_1=EFC0A467D613CB83C7ED6D30D894E2CE8B3D79F5 \
