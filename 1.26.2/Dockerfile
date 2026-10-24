@@ -1,4 +1,4 @@
-ARG UNBOUND_VERSION=1.26.0
+ARG UNBOUND_VERSION=1.26.2
 
 FROM debian:trixie AS openssl
 LABEL maintainer="Matthew Vance"
@@ -7,8 +7,8 @@ ENV NAME=unbound \
     SUMMARY="unbound is a validating, recursive, and caching DNS resolver." \
     DESCRIPTION="unbound is a validating, recursive, and caching DNS resolver."
 
-ENV VERSION_OPENSSL=openssl-3.5.8 \
-    SHA256_OPENSSL=a8f84a39918ec6415ce765d9b429d313ba97b8143169c172e734b9514464f5b2 \
+ENV VERSION_OPENSSL=openssl-3.5.9 \
+    SHA256_OPENSSL=603f5602e2eef00d77fbd429d34dcd5822bb301757a1bc9cdb24c670f1eb859a \
     SOURCE_OPENSSL=https://www.openssl.org/source/ \
     # OpenSSL OMC
     OPGP_OPENSSL_1=EFC0A467D613CB83C7ED6D30D894E2CE8B3D79F5 \
@@ -72,7 +72,7 @@ LABEL maintainer="Matthew Vance"
 ARG UNBOUND_VERSION
 
 ENV NAME=unbound \
-    UNBOUND_SHA256=77458a7156e275c0b7b17fabcb357cb12445d95cfcb26fb9bb7d5ecba45e0b63 \
+    UNBOUND_SHA256=d8ee7aa6bbb3ff1be7d9e57637d0d0ec2f18273a8efff1a0afe2c665858b96f7 \
     UNBOUND_DOWNLOAD_URL=https://nlnetlabs.nl/downloads/unbound/unbound-${UNBOUND_VERSION}.tar.gz
 
 WORKDIR /tmp/src
