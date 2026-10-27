@@ -1,0 +1,161 @@
+name: Check upstream versions
+
+on:
+  workflow_dispatch:
+  schedule:
+    # täglich 07:00 Uhr MEZ / 08:00 Uhr MESZ
+    - cron: "0 6 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  versions:
+    name: Check Unbound and OpenSSL versions
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check versions
+        id: versions
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          #
+          # Aktuellstes Unbound-Verzeichnis im Repo finden
+          #
+          CURRENT_DIR="$(
+            find . -maxdepth 1 -mindepth 1 -type d -printf '%f\n' \
+              | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' \
+              | sort -V \
+              | tail -1
+          )"
+
+          if [[ -z "${CURRENT_DIR}" ]]; then
+            echo "Kein Unbound-Versionsverzeichnis gefunden."
+            exit 1
+          fi
+
+          DOCKERFILE="${CURRENT_DIR}/Dockerfile"
+
+          if [[ ! -f "${DOCKERFILE}" ]]; then
+            echo "Dockerfile nicht gefunden: ${DOCKERFILE}"
+            exit 1
+          fi
+
+
+          #
+          # Aktuelle Versionen aus unserem Dockerfile
+          #
+          CURRENT_UNBOUND="$(
+            sed -nE 's/^ARG UNBOUND_VERSION=([0-9.]+)$/\1/p' \
+              "${DOCKERFILE}"
+          )"
+
+          CURRENT_OPENSSL="$(
+            sed -nE \
+              's/.*VERSION_OPENSSL=openssl-([0-9.]+).*/\1/p' \
+              "${DOCKERFILE}"
+          )"
+
+
+          #
+          # Neueste stabile Unbound-Version
+          #
+          LATEST_UNBOUND="$(
+            git ls-remote \
+              --tags \
+              --refs \
+              https://github.com/NLnetLabs/unbound.git \
+              'refs/tags/release-*' \
+            | awk -F/ '{print $3}' \
+            | sed -nE \
+                's/^release-([0-9]+\.[0-9]+\.[0-9]+)$/\1/p' \
+            | sort -V \
+            | tail -1
+          )"
+
+
+          #
+          # OpenSSL-LTS-Serie aus unserer Version bestimmen
+          # 3.5.9 -> 3.5
+          #
+          OPENSSL_SERIES="$(
+            echo "${CURRENT_OPENSSL}" \
+              | cut -d. -f1,2
+          )"
+
+          OPENSSL_SERIES_REGEX="${OPENSSL_SERIES//./\\.}"
+
+
+          #
+          # Neueste stabile Version innerhalb unserer LTS-Serie
+          #
+          LATEST_OPENSSL="$(
+            git ls-remote \
+              --tags \
+              --refs \
+              https://github.com/openssl/openssl.git \
+              "refs/tags/openssl-${OPENSSL_SERIES}.*" \
+            | awk -F/ '{print $3}' \
+            | sed 's/^openssl-//' \
+            | grep -E \
+                "^${OPENSSL_SERIES_REGEX}\.[0-9]+$" \
+            | sort -V \
+            | tail -1
+          )"
+
+
+          #
+          # Sicherheitscheck
+          #
+          if [[ -z "${CURRENT_UNBOUND}" ||
+                -z "${LATEST_UNBOUND}" ||
+                -z "${CURRENT_OPENSSL}" ||
+                -z "${LATEST_OPENSSL}" ]]; then
+            echo "Fehler beim Ermitteln der Versionsnummern."
+            exit 1
+          fi
+
+
+          #
+          # Ausgabe
+          #
+          echo
+          echo "========================================"
+          echo " Unbound"
+          echo "========================================"
+          echo " Current : ${CURRENT_UNBOUND}"
+          echo " Latest  : ${LATEST_UNBOUND}"
+          echo
+          echo "========================================"
+          echo " OpenSSL ${OPENSSL_SERIES} LTS"
+          echo "========================================"
+          echo " Current : ${CURRENT_OPENSSL}"
+          echo " Latest  : ${LATEST_OPENSSL}"
+          echo
+
+
+          #
+          # Outputs für unseren späteren Build-Job
+          #
+          echo "current_unbound=${CURRENT_UNBOUND}" >> "${GITHUB_OUTPUT}"
+          echo "latest_unbound=${LATEST_UNBOUND}"   >> "${GITHUB_OUTPUT}"
+          echo "current_openssl=${CURRENT_OPENSSL}" >> "${GITHUB_OUTPUT}"
+          echo "latest_openssl=${LATEST_OPENSSL}"   >> "${GITHUB_OUTPUT}"
+
+
+          #
+          # GitHub Job Summary
+          #
+          {
+            echo "## Version check"
+            echo
+            echo "| Software | Current | Latest |"
+            echo "|----------|---------|--------|"
+            echo "| Unbound | ${CURRENT_UNBOUND} | ${LATEST_UNBOUND} |"
+            echo "| OpenSSL ${OPENSSL_SERIES} LTS | ${CURRENT_OPENSSL} | ${LATEST_OPENSSL} |"
+          } >> "${GITHUB_STEP_SUMMARY}"
