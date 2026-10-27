@@ -174,7 +174,7 @@ jobs:
           echo "unbound_update=${UNBOUND_UPDATE}" >> "${GITHUB_OUTPUT}"
           echo "openssl_update=${OPENSSL_UPDATE}" >> "${GITHUB_OUTPUT}"
 
-                - name: Check upstream SHA256
+      - name: Check upstream SHA256
         id: checksums
         shell: bash
         env:
