@@ -159,3 +159,21 @@ jobs:
             echo "| Unbound | ${CURRENT_UNBOUND} | ${LATEST_UNBOUND} |"
             echo "| OpenSSL ${OPENSSL_SERIES} LTS | ${CURRENT_OPENSSL} | ${LATEST_OPENSSL} |"
           } >> "${GITHUB_STEP_SUMMARY}"
+          if [[ "${LATEST_UNBOUND}" != "${CURRENT_UNBOUND}" ]]; then
+          UNBOUND_UPDATE=true
+          else
+          UNBOUND_UPDATE=false
+          fi
+
+          if [[ "${LATEST_OPENSSL}" != "${CURRENT_OPENSSL}" ]]; then
+          OPENSSL_UPDATE=true
+          else
+          OPENSSL_UPDATE=false
+          fi
+
+          echo "unbound_update=${UNBOUND_UPDATE}" >> "${GITHUB_OUTPUT}"
+          echo "openssl_update=${OPENSSL_UPDATE}" >> "${GITHUB_OUTPUT}"
+
+          echo
+          echo "Unbound update : ${UNBOUND_UPDATE}"
+          echo "OpenSSL update : ${OPENSSL_UPDATE}"
