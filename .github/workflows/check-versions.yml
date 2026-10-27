@@ -220,4 +220,57 @@ jobs:
           echo "Repo     : ${REPO_OPENSSL_SHA}"
           echo "Upstream : ${UPSTREAM_OPENSSL_SHA}"
 
-          
+          echo "unbound_sha=${UPSTREAM_UNBOUND_SHA}" >> "${GITHUB_OUTPUT}"
+          echo "openssl_sha=${UPSTREAM_OPENSSL_SHA}" >> "${GITHUB_OUTPUT}"
+
+                - name: Update Dockerfile
+        if: ${{ steps.versions.outputs.unbound_update == 'true' || steps.versions.outputs.openssl_update == 'true' }}
+        shell: bash
+        env:
+          CURRENT_UNBOUND: ${{ steps.versions.outputs.current_unbound }}
+          LATEST_UNBOUND: ${{ steps.versions.outputs.latest_unbound }}
+          CURRENT_OPENSSL: ${{ steps.versions.outputs.current_openssl }}
+          LATEST_OPENSSL: ${{ steps.versions.outputs.latest_openssl }}
+          UNBOUND_UPDATE: ${{ steps.versions.outputs.unbound_update }}
+          OPENSSL_UPDATE: ${{ steps.versions.outputs.openssl_update }}
+          UNBOUND_SHA: ${{ steps.checksums.outputs.unbound_sha }}
+          OPENSSL_SHA: ${{ steps.checksums.outputs.openssl_sha }}
+        run: |
+          set -euo pipefail
+
+          TARGET_DIR="${CURRENT_UNBOUND}"
+
+          if [[ "${UNBOUND_UPDATE}" == "true" ]]; then
+            TARGET_DIR="${LATEST_UNBOUND}"
+
+            if [[ -e "${TARGET_DIR}" ]]; then
+              echo "Zielverzeichnis ${TARGET_DIR} existiert bereits."
+              exit 1
+            fi
+
+            cp -a "${CURRENT_UNBOUND}" "${TARGET_DIR}"
+          fi
+
+          DOCKERFILE="${TARGET_DIR}/Dockerfile"
+
+          if [[ "${UNBOUND_UPDATE}" == "true" ]]; then
+            sed -i -E \
+              "s/^ARG UNBOUND_VERSION=.*/ARG UNBOUND_VERSION=${LATEST_UNBOUND}/" \
+              "${DOCKERFILE}"
+
+            sed -i -E \
+              "s/UNBOUND_SHA256=[a-f0-9]{64}/UNBOUND_SHA256=${UNBOUND_SHA}/" \
+              "${DOCKERFILE}"
+          fi
+
+          if [[ "${OPENSSL_UPDATE}" == "true" ]]; then
+            sed -i -E \
+              "s/VERSION_OPENSSL=openssl-[0-9.]+/VERSION_OPENSSL=openssl-${LATEST_OPENSSL}/" \
+              "${DOCKERFILE}"
+
+            sed -i -E \
+              "s/SHA256_OPENSSL=[a-f0-9]{64}/SHA256_OPENSSL=${OPENSSL_SHA}/" \
+              "${DOCKERFILE}"
+          fi
+
+          git diff -- "${TARGET_DIR}"
