@@ -220,6 +220,4 @@ jobs:
           echo "Repo     : ${REPO_OPENSSL_SHA}"
           echo "Upstream : ${UPSTREAM_OPENSSL_SHA}"
 
-          echo
-          echo "Unbound update : ${UNBOUND_UPDATE}"
-          echo "OpenSSL update : ${OPENSSL_UPDATE}"
+          
