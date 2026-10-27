@@ -9,7 +9,7 @@ ENV NAME=unbound \
 
 ENV VERSION_OPENSSL=openssl-3.5.9 \
     SHA256_OPENSSL=603f5602e2eef00d77fbd429d34dcd5822bb301757a1bc9cdb24c670f1eb859a \
-    SOURCE_OPENSSL=https://www.openssl.org/source/ \
+    SOURCE_OPENSSL=https://github.com/openssl/openssl/releases/download/ \
     # OpenSSL OMC
     OPGP_OPENSSL_1=EFC0A467D613CB83C7ED6D30D894E2CE8B3D79F5 \
     # Richard Levitte
@@ -35,9 +35,9 @@ RUN set -e -x && \
     build_deps="build-essential ca-certificates curl dirmngr gnupg libidn2-0-dev libssl-dev" && \
     DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends \
       $build_deps && \
-    curl -L $SOURCE_OPENSSL$VERSION_OPENSSL.tar.gz -o openssl.tar.gz && \
+    curl -fL "${SOURCE_OPENSSL}${VERSION_OPENSSL}/${VERSION_OPENSSL}.tar.gz" -o openssl.tar.gz && \
     echo "${SHA256_OPENSSL} ./openssl.tar.gz" | sha256sum -c - && \
-    curl -L $SOURCE_OPENSSL$VERSION_OPENSSL.tar.gz.asc -o openssl.tar.gz.asc && \
+    curl -fL "${SOURCE_OPENSSL}${VERSION_OPENSSL}/${VERSION_OPENSSL}.tar.gz.asc" -o openssl.tar.gz.asc && \
     GNUPGHOME="$(mktemp -d)" && \
     export GNUPGHOME && \
     gpg --no-tty --keyserver keyserver.ubuntu.com --recv-keys \
