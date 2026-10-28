@@ -7,7 +7,7 @@ on:
     - cron: "0 6 * * *"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   versions:
@@ -274,3 +274,35 @@ jobs:
           fi
 
           git diff -- "${TARGET_DIR}"
+
+                - name: Commit and push update
+        if: ${{ steps.versions.outputs.unbound_update == 'true' || steps.versions.outputs.openssl_update == 'true' }}
+        shell: bash
+        env:
+          LATEST_UNBOUND: ${{ steps.versions.outputs.latest_unbound }}
+          LATEST_OPENSSL: ${{ steps.versions.outputs.latest_openssl }}
+          UNBOUND_UPDATE: ${{ steps.versions.outputs.unbound_update }}
+          OPENSSL_UPDATE: ${{ steps.versions.outputs.openssl_update }}
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "Keine Änderungen zu committen."
+            exit 0
+          fi
+
+          if [[ "${UNBOUND_UPDATE}" == "true" && "${OPENSSL_UPDATE}" == "true" ]]; then
+            COMMIT_MSG="Update Unbound to ${LATEST_UNBOUND} and OpenSSL to ${LATEST_OPENSSL}"
+          elif [[ "${UNBOUND_UPDATE}" == "true" ]]; then
+            COMMIT_MSG="Update Unbound to ${LATEST_UNBOUND}"
+          else
+            COMMIT_MSG="Update OpenSSL to ${LATEST_OPENSSL}"
+          fi
+
+          git commit -m "${COMMIT_MSG}"
+          git push
