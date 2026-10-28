@@ -280,6 +280,7 @@ jobs:
         if: ${{ steps.versions.outputs.unbound_update == 'true' || steps.versions.outputs.openssl_update == 'true' }}
         shell: bash
         env:
+          GH_TOKEN: ${{ github.token }}
           LATEST_UNBOUND: ${{ steps.versions.outputs.latest_unbound }}
           LATEST_OPENSSL: ${{ steps.versions.outputs.latest_openssl }}
           UNBOUND_UPDATE: ${{ steps.versions.outputs.unbound_update }}
@@ -308,5 +309,4 @@ jobs:
           git commit -m "${COMMIT_MSG}"
           git push
           gh workflow run build.yml --ref main
-          env:
-          GH_TOKEN: ${{ github.token }}
+          
