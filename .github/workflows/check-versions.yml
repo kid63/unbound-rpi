@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   versions:
@@ -306,3 +307,6 @@ jobs:
 
           git commit -m "${COMMIT_MSG}"
           git push
+          gh workflow run build.yml --ref main
+          env:
+          GH_TOKEN: ${{ github.token }}
