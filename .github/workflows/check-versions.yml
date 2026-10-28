@@ -308,5 +308,5 @@ jobs:
 
           git commit -m "${COMMIT_MSG}"
           git push
-          gh workflow run build.yml --ref main
+          gh workflow run update.yml --ref main
           
