@@ -223,7 +223,7 @@ jobs:
           echo "unbound_sha=${UPSTREAM_UNBOUND_SHA}" >> "${GITHUB_OUTPUT}"
           echo "openssl_sha=${UPSTREAM_OPENSSL_SHA}" >> "${GITHUB_OUTPUT}"
 
-                - name: Update Dockerfile
+      - name: Update Dockerfile
         if: ${{ steps.versions.outputs.unbound_update == 'true' || steps.versions.outputs.openssl_update == 'true' }}
         shell: bash
         env:
@@ -275,7 +275,7 @@ jobs:
 
           git diff -- "${TARGET_DIR}"
 
-                - name: Commit and push update
+      - name: Commit and push update
         if: ${{ steps.versions.outputs.unbound_update == 'true' || steps.versions.outputs.openssl_update == 'true' }}
         shell: bash
         env:
